@@ -10,6 +10,7 @@ Area_users = 0  # AQ
 arrival_rate = 1.0 # lambda
 service_rate = 1.5 # mu
 timesteps = 100
+np.random.seed(42)
 
 first_arrival_time = np.random.exponential(1/arrival_rate)
 event_calendar = [(first_arrival_time, "arrival"), (timesteps, "termination")]
