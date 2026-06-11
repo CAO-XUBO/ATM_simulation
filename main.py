@@ -54,5 +54,7 @@ while True:
         Average_System_Size = Area_users/timesteps # L
         Utilization = Area_atm_state/timesteps # rho
 
-        print(Average_System_Size, Utilization)
+        print("Simulation Finished")
+        print("The Average System Size:",Average_System_Size)
+        print("Utilization:",Utilization)
         break
