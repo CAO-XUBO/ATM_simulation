@@ -9,17 +9,17 @@ Area_users = 0  # AQ
 
 arrival_rate = 1.0 # lambda
 service_rate = 1.5 # mu
-timesteps = 100
+timesteps = 100 # Simulation time
 np.random.seed(42)
 
+# Initialise the event calendar
 first_arrival_time = np.random.exponential(1/arrival_rate)
 event_calendar = [(first_arrival_time, "arrival"), (timesteps, "termination")]
 
 current_time = 0
 
 while True:
-
-    # Find the next event
+    # Find the next event and delete it from the event calendar
     next_index = min(range(len(event_calendar)), key=lambda i: event_calendar[i][0])
     event_time, event_type = event_calendar.pop(next_index)
 
