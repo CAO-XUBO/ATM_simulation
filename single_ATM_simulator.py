@@ -24,14 +24,14 @@ while True:
     event_time, event_type = event_calendar.pop(next_index)
 
     # Update AQ and AB
-    Area_users = Area_users + (event_time - current_time) * Num_users
-    Area_atm_state = Area_atm_state + (event_time - current_time) * atm_state
+    Area_users += (event_time - current_time) * Num_users
+    Area_atm_state += (event_time - current_time) * atm_state
 
     # Update the current time
     current_time = event_time
 
     if event_type == "arrival":
-        Num_users = Num_users + 1
+        Num_users += 1
         if atm_state == 0:
             atm_state = 1
             # Schedule a new departure time
@@ -43,7 +43,7 @@ while True:
         event_calendar.append((arrival_time, "arrival"))
 
     elif event_type == "departure":
-        Num_users = Num_users - 1
+        Num_users -= 1
         if Num_users > 0:
             # Schedule a new departure time
             departure_time = current_time + np.random.exponential(1 / service_rate)
