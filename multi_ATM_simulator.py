@@ -8,7 +8,9 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
     :return: Average_System_Size L and Utilization rho
     '''
 
-    np.random.seed(seed)
+    # Set the random seed
+    if seed is not None:
+        np.random.seed(seed)
 
     # Initialisation
     atm_state = [0] * Num_atm # B(t): The ATM is in use (1), or idle (0)
@@ -62,7 +64,6 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
             Utilization = Area_atm_state/(Num_atm * timesteps) # rho
-            print("Simulation Finished")
             return Average_System_Size, Utilization
 
 if __name__ == "__main__":
@@ -71,5 +72,6 @@ if __name__ == "__main__":
                                                            service_rate = 1.5,
                                                            timesteps = 100,
                                                            seed = 42)
+    print("Simulation Finished")
     print("The Average System Size:", Average_System_Size)
     print("Utilization:", Utilization)
