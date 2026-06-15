@@ -1,11 +1,12 @@
 import numpy as np
+from Config import P_BUSY, P_IDLE
 
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, seed = 42):
     '''
     Num_atm: The number of ATM in the system
     arrival_rate: The arrival rate lambda
     service_rate: The service rate mu
-    :return: Average_System_Size L and Utilization rho
+    :return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time
     '''
 
     # Set the random seed
@@ -16,11 +17,15 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
     atm_state = [0] * Num_atm # B(t): The ATM is in use (1), or idle (0)
     Num_users = [0] * Num_atm # Q(t): The number of users in the system at time t
 
+    # Store arrival times of waiting users for each ATM
+    queues = [[] for _ in range(Num_atm)]
+
     Area_atm_state = 0 # AB
     Area_users = 0  # AQ
 
-    Total_energy = 0
-    Total_time = 0
+    total_energy = 0
+    total_waiting_time = 0
+    Num_started_service = 0
 
     # Initialise the event calendar
     first_arrival_time = np.random.exponential(1/arrival_rate)
@@ -33,14 +38,28 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
         next_index = min(range(len(event_calendar)), key=lambda i: event_calendar[i][0])
         event_time, event_type, server_id = event_calendar.pop(next_index)
 
+        delta_time = event_time - current_time
+
         # Update AQ and AB
-        Area_users += (event_time - current_time) * sum(Num_users)
-        Area_atm_state += (event_time - current_time) * sum(atm_state)
+        Area_users += delta_time * sum(Num_users)
+        Area_atm_state += delta_time * sum(atm_state)
+
+        # Update energy consumption
+        current_power = 0
+        for i in range(Num_atm):
+            if atm_state[i] == 1:
+                current_power += P_BUSY
+            else:
+                current_power += P_IDLE
+
+        total_energy += delta_time * current_power
 
         # Update the current time
         current_time = event_time
 
         if event_type == "arrival":
+
+            arrival_time = current_time
 
             # Find the shortest queue
             chosen_server = np.argmin(Num_users)
@@ -48,32 +67,61 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
 
             if atm_state[chosen_server] == 0:
                 atm_state[chosen_server] = 1
+
+                # The user starts service immediately, so waiting time is 0
+                total_waiting_time += 0
+                Num_started_service += 1
+
                 departure_time = current_time + np.random.exponential(1 / service_rate)
                 event_calendar.append((departure_time, "departure", chosen_server))
 
+            else:
+                # The user joins the queue of the chosen ATM
+                queues[chosen_server].append(arrival_time)
+
             # Schedule the next arrival time
-            arrival_time = current_time + np.random.exponential(1/arrival_rate)
-            event_calendar.append((arrival_time, "arrival", None))
+            next_arrival_time = current_time + np.random.exponential(1/arrival_rate)
+            event_calendar.append((next_arrival_time, "arrival", None))
 
         elif event_type == "departure":
             Num_users[server_id] -= 1
+
             if Num_users[server_id] > 0:
+                # Next waiting customer starts service
+                arrival_time_of_next_customer = queues[server_id].pop(0)
+
+                waiting_time = current_time - arrival_time_of_next_customer
+                total_waiting_time += waiting_time
+                Num_started_service += 1
+
                 # Schedule a new departure time
                 departure_time = current_time + np.random.exponential(1 / service_rate)
                 event_calendar.append((departure_time, "departure", server_id))
-            else: atm_state[server_id] = 0
+
+            else:
+                atm_state[server_id] = 0
 
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
             Utilization = Area_atm_state/(Num_atm * timesteps) # rho
-            return Average_System_Size, Utilization
+
+            Average_Power = total_energy / timesteps
+            Average_Waiting_Time = total_waiting_time / Num_started_service
+
+            return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time
+
 
 if __name__ == "__main__":
-    Average_System_Size, Utilization = multi_ATM_simulator(Num_atm = 5,
-                                                           arrival_rate = 1,
-                                                           service_rate = 1.5,
-                                                           timesteps = 100,
-                                                           seed = 42)
+    Average_System_Size, Utilization, Average_Power, Average_Waiting_Time = multi_ATM_simulator(
+        Num_atm = 5,
+        arrival_rate = 1,
+        service_rate = 1.5,
+        timesteps = 100,
+        seed = 42
+    )
+
     print("Simulation Finished")
     print("The Average System Size:", Average_System_Size)
     print("Utilization:", Utilization)
+    print("Average Power:", Average_Power)
+    print("Average Waiting Time:", Average_Waiting_Time)
