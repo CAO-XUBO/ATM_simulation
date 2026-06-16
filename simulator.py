@@ -122,7 +122,6 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
 
             return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
 
-
 if __name__ == "__main__":
     Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP = multi_ATM_simulator(
         Num_atm=5,
