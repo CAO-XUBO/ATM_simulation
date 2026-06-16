@@ -69,7 +69,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
             arrival_time = current_time
 
             # Find the shortest queue
-            chosen_server = choose_server(Num_atm)
+            chosen_server = choose_server(Num_users)
             Num_users[chosen_server] += 1
 
             if atm_state[chosen_server] == "IDLE":
