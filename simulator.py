@@ -1,10 +1,14 @@
 import numpy as np
 from Config import *
 
-def choose_server(Num_users):
-    return np.argmin(Num_users)
+def choose_server(Num_users, policy):
+    if policy == "NEVEROFF":
+        return np.argmin(Num_users)
+    else:
+        raise ValueError("Unknow policy")
 
-def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, seed = 42):
+
+def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, policy = "NEVEROFF", seed = 42):
     '''
     Num_atm: The number of ATM in the system
     arrival_rate: The arrival rate lambda
@@ -69,7 +73,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
             arrival_time = current_time
 
             # Find the shortest queue
-            chosen_server = choose_server(Num_users)
+            chosen_server = choose_server(Num_users, policy)
             Num_users[chosen_server] += 1
 
             if atm_state[chosen_server] == "IDLE":
@@ -132,6 +136,7 @@ if __name__ == "__main__":
         arrival_rate=1,
         service_rate=1.5,
         timesteps=100,
+        policy="NEVEROFF",
         seed=42
     )
 
