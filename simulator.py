@@ -1,8 +1,8 @@
 import numpy as np
 from Config import *
 
-def choose_server(Num_servers):
-    return np.argmin(Num_servers)
+def choose_server(Num_users):
+    return np.argmin(Num_users)
 
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, seed = 42):
     '''
