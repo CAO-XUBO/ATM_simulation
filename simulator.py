@@ -1,12 +1,15 @@
 import numpy as np
 from Config import *
 
+def choose_server(Num_servers):
+    return np.argmin(Num_servers)
+
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, seed = 42):
     '''
     Num_atm: The number of ATM in the system
     arrival_rate: The arrival rate lambda
     service_rate: The service rate mu
-    :return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time
+    return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
     '''
 
     # Set the random seed
@@ -14,7 +17,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
         np.random.seed(seed)
 
     # Initialisation
-    atm_state = [0] * Num_atm # B(t): The ATM is in use (1), or idle (0)
+    atm_state = ["IDLE"] * Num_atm # B(t): The ATM is in use, or idle
     Num_users = [0] * Num_atm # Q(t): The number of users in the system at time t
 
     # Store arrival times of waiting users for each ATM
@@ -45,12 +48,13 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
 
         # Update AQ and AB
         Area_users += delta_time * sum(Num_users)
-        Area_atm_state += delta_time * sum(atm_state)
+        busy_server = sum(1 for state in atm_state if state == "BUSY")
+        Area_atm_state += delta_time * busy_server
 
         # Update energy consumption
         current_power = 0
         for i in range(Num_atm):
-            if atm_state[i] == 1:
+            if atm_state[i] == "BUSY":
                 current_power += P_BUSY
             else:
                 current_power += P_IDLE
@@ -65,11 +69,11 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
             arrival_time = current_time
 
             # Find the shortest queue
-            chosen_server = np.argmin(Num_users)
+            chosen_server = choose_server(Num_atm)
             Num_users[chosen_server] += 1
 
-            if atm_state[chosen_server] == 0:
-                atm_state[chosen_server] = 1
+            if atm_state[chosen_server] == "IDLE":
+                atm_state[chosen_server] = "BUSY"
 
                 # The user starts service immediately, so waiting time is 0
                 total_waiting_time += 0
@@ -109,7 +113,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
                 event_calendar.append((departure_time, "departure", server_id))
 
             else:
-                atm_state[server_id] = 0
+                atm_state[server_id] = "IDLE"
 
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
