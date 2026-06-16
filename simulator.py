@@ -26,6 +26,9 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
     total_energy = 0
     total_waiting_time = 0
     Num_started_service = 0
+    total_response_time = 0
+    Num_completed_users = 0
+    current_customer_arrival = [None] * Num_atm
 
     # Initialise the event calendar
     first_arrival_time = np.random.exponential(1/arrival_rate)
@@ -71,6 +74,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
                 # The user starts service immediately, so waiting time is 0
                 total_waiting_time += 0
                 Num_started_service += 1
+                current_customer_arrival[chosen_server] = arrival_time
 
                 departure_time = current_time + np.random.exponential(1 / service_rate)
                 event_calendar.append((departure_time, "departure", chosen_server))
@@ -86,6 +90,11 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
         elif event_type == "departure":
             Num_users[server_id] -= 1
 
+            response_time = current_time - current_customer_arrival[server_id]
+            total_response_time += response_time
+            Num_completed_users += 1
+            current_customer_arrival[server_id] = None
+
             if Num_users[server_id] > 0:
                 # Next waiting customer starts service
                 arrival_time_of_next_customer = queues[server_id].pop(0)
@@ -93,6 +102,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
                 waiting_time = current_time - arrival_time_of_next_customer
                 total_waiting_time += waiting_time
                 Num_started_service += 1
+                current_customer_arrival[server_id] = arrival_time_of_next_customer
 
                 # Schedule a new departure time
                 departure_time = current_time + np.random.exponential(1 / service_rate)
@@ -107,17 +117,19 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
 
             Average_Power = total_energy / timesteps
             Average_Waiting_Time = total_waiting_time / Num_started_service
+            Average_Response_Time = total_response_time / Num_completed_users
+            ERP = Average_Power * Average_Response_Time
 
-            return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time
+            return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
 
 
 if __name__ == "__main__":
-    Average_System_Size, Utilization, Average_Power, Average_Waiting_Time = multi_ATM_simulator(
-        Num_atm = 5,
-        arrival_rate = 1,
-        service_rate = 1.5,
-        timesteps = 100,
-        seed = 42
+    Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP = multi_ATM_simulator(
+        Num_atm=5,
+        arrival_rate=1,
+        service_rate=1.5,
+        timesteps=100,
+        seed=42
     )
 
     print("Simulation Finished")
@@ -125,3 +137,5 @@ if __name__ == "__main__":
     print("Utilization:", Utilization)
     print("Average Power:", Average_Power)
     print("Average Waiting Time:", Average_Waiting_Time)
+    print("Average Response Time:", Average_Response_Time)
+    print("ERP:", ERP)
