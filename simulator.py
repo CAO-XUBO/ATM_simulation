@@ -2,14 +2,33 @@ import numpy as np
 from Config import *
 
 def choose_server(Num_users, policy):
+    '''
+    Choose the server based on the policy
+    '''
     if policy == "NEVEROFF":
         return np.argmin(Num_users)
     else:
         raise ValueError("Unknow policy")
 
 def count_busy_servers(atm_state):
+    '''
+    Count the number of busy servers
+    '''
     busy_servers = sum(1 for state in atm_state if state == "BUSY")
     return busy_servers
+
+def calculate_current_power(atm_state):
+    '''
+    Calculate the current power
+    '''
+    current_power = 0
+    for state in atm_state:
+        if state == "BUSY":
+            current_power += P_BUSY
+        elif state == "IDLE":
+            current_power += P_IDLE
+        else:
+            raise ValueError("Unknow state")
 
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, policy = "NEVEROFF", seed = 42):
     '''
@@ -59,12 +78,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
         Area_atm_state += delta_time * busy_server
 
         # Update energy consumption
-        current_power = 0
-        for i in range(Num_atm):
-            if atm_state[i] == "BUSY":
-                current_power += P_BUSY
-            else:
-                current_power += P_IDLE
+        current_power = calculate_current_power(atm_state)
 
         total_energy += delta_time * current_power
 
