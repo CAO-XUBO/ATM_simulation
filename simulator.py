@@ -1,11 +1,6 @@
 import numpy as np
 from Config import *
-
-def choose_server(Num_users, policy):
-    if policy == "NEVEROFF":
-        return np.argmin(Num_users)
-    else:
-        raise ValueError("Unknown policy")
+from policies import get_policy_functions
 
 def count_busy_servers(atm_state):
     busy_servers = sum(1 for state in atm_state if state == "BUSY")
@@ -31,7 +26,12 @@ def start_service(server_id, arrival_time, current_time, service_rate, atm_state
     departure_time = current_time + np.random.exponential(1 / service_rate)
     event_calendar.append((departure_time, "departure", server_id))
 
-def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, policy = "NEVEROFF", seed = 42):
+def multi_ATM_simulator(Num_atm = 5,
+                        arrival_rate = 1,
+                        service_rate = 1.5,
+                        timesteps = 100,
+                        policy = "NEVEROFF",
+                        seed = 42):
     '''
     Num_atm: The number of ATM in the system
     arrival_rate: The arrival rate lambda
@@ -46,7 +46,8 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
         np.random.seed(seed)
 
     # Initialisation
-    atm_state = ["IDLE"] * Num_atm # B(t): The ATM is in use, or idle
+    policy_functions = get_policy_functions(policy)
+    atm_state = [policy_functions["initial_state"]] * Num_atm # B(t): The ATM is in use, or idle
     Num_users = [0] * Num_atm # Q(t): The number of users in the system at time t
 
     # Store arrival times of waiting users for each ATM
@@ -93,7 +94,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
             arrival_time = current_time
 
             # Find the shortest queue
-            chosen_server = choose_server(Num_users, policy)
+            chosen_server = policy_functions["choose_server"](Num_users, atm_state)
             Num_users[chosen_server] += 1
 
             if atm_state[chosen_server] == "IDLE":
@@ -134,7 +135,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
                               current_customer_arrival, event_calendar)
 
             else:
-                atm_state[server_id] = "IDLE"
+                atm_state[server_id] = policy_functions["idle_state_after_departure"]
 
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
