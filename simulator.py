@@ -30,10 +30,19 @@ def start_service(server_id, arrival_time, current_time, service_rate, atm_state
     departure_time = current_time + np.random.exponential(1 / service_rate)
     event_calendar.append((departure_time, "departure", server_id))
 
+def start_setup(server_id, current_time, setup_time, atm_state, event_calendar):
+
+    # Set the server to setup state
+    atm_state[server_id] = "SETUP"
+
+    setup_complete_time = current_time + setup_time
+    event_calendar.append((setup_complete_time, "setup_complete", server_id))
+
 def multi_ATM_simulator(Num_atm = 5,
                         arrival_rate = 1,
                         service_rate = 1.5,
                         timesteps = 100,
+                        setup_time = SETUP_TIME,
                         policy = "NEVEROFF",
                         seed = 42):
     '''
@@ -111,9 +120,20 @@ def multi_ATM_simulator(Num_atm = 5,
                 start_service(chosen_server, arrival_time, current_time, service_rate, atm_state,
                               current_customer_arrival, event_calendar)
 
-            else:
+            elif atm_state[chosen_server] == "OFF":
+
+                # The user waits while the server is setting up
+                queues[chosen_server].append(arrival_time)
+
+                start_setup(chosen_server, current_time, setup_time, atm_state, event_calendar)
+
+            elif atm_state[chosen_server] == "BUSY" or atm_state[chosen_server] == "SETUP":
+
                 # The user joins the queue of the chosen ATM
                 queues[chosen_server].append(arrival_time)
+
+            else:
+                raise ValueError("Unknown server state")
 
             # Schedule the next arrival time
             next_arrival_time = current_time + np.random.exponential(1/arrival_rate)
@@ -129,6 +149,22 @@ def multi_ATM_simulator(Num_atm = 5,
 
             if Num_users[server_id] > 0:
                 # Next waiting customer starts service
+                arrival_time_of_next_customer = queues[server_id].pop(0)
+
+                waiting_time = current_time - arrival_time_of_next_customer
+                total_waiting_time += waiting_time
+                Num_started_service += 1
+
+                start_service(server_id, arrival_time_of_next_customer, current_time, service_rate, atm_state,
+                              current_customer_arrival, event_calendar)
+
+            else:
+                atm_state[server_id] = policy_functions["idle_state_after_departure"]
+
+        elif event_type == "setup_complete":
+
+            if Num_users[server_id] > 0:
+                # The first waiting customer starts service after setup
                 arrival_time_of_next_customer = queues[server_id].pop(0)
 
                 waiting_time = current_time - arrival_time_of_next_customer
@@ -158,7 +194,7 @@ if __name__ == "__main__":
         arrival_rate=1,
         service_rate=1.5,
         timesteps=100,
-        policy="NEVEROFF",
+        policy="INSTANTOFF", # "NEVEROFF", "INSTANTOFF"
         seed=42
     )
 
