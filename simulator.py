@@ -8,7 +8,7 @@ def choose_server(Num_users, policy):
     if policy == "NEVEROFF":
         return np.argmin(Num_users)
     else:
-        raise ValueError("Unknow policy")
+        raise ValueError("Unknown policy")
 
 def count_busy_servers(atm_state):
     '''
@@ -28,8 +28,17 @@ def calculate_current_power(atm_state):
         elif state == "IDLE":
             current_power += P_IDLE
         else:
-            raise ValueError("Unknow state")
+            raise ValueError("Unknown state")
     return current_power
+
+def start_service(server_id, arrival_time, current_time, service_rate, atm_state, current_customer_arrival, event_calendar):
+
+    # Set the server to busy state
+    atm_state[server_id] = "BUSY"
+
+    current_customer_arrival[server_id] = arrival_time
+    departure_time = current_time + np.random.exponential(1 / service_rate)
+    event_calendar.append((departure_time, "departure", server_id))
 
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, policy = "NEVEROFF", seed = 42):
     '''
@@ -95,15 +104,14 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
             Num_users[chosen_server] += 1
 
             if atm_state[chosen_server] == "IDLE":
-                atm_state[chosen_server] = "BUSY"
 
                 # The user starts service immediately, so waiting time is 0
                 total_waiting_time += 0
                 Num_started_service += 1
-                current_customer_arrival[chosen_server] = arrival_time
 
-                departure_time = current_time + np.random.exponential(1 / service_rate)
-                event_calendar.append((departure_time, "departure", chosen_server))
+                # Start service
+                start_service(chosen_server, arrival_time, current_time, service_rate, atm_state,
+                              current_customer_arrival, event_calendar)
 
             else:
                 # The user joins the queue of the chosen ATM
@@ -128,11 +136,9 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
                 waiting_time = current_time - arrival_time_of_next_customer
                 total_waiting_time += waiting_time
                 Num_started_service += 1
-                current_customer_arrival[server_id] = arrival_time_of_next_customer
 
-                # Schedule a new departure time
-                departure_time = current_time + np.random.exponential(1 / service_rate)
-                event_calendar.append((departure_time, "departure", server_id))
+                start_service(server_id, arrival_time_of_next_customer, current_time, service_rate, atm_state,
+                              current_customer_arrival, event_calendar)
 
             else:
                 atm_state[server_id] = "IDLE"
