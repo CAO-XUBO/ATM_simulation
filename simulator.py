@@ -29,6 +29,7 @@ def calculate_current_power(atm_state):
             current_power += P_IDLE
         else:
             raise ValueError("Unknow state")
+    return current_power
 
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, policy = "NEVEROFF", seed = 42):
     '''
