@@ -13,6 +13,10 @@ def calculate_current_power(atm_state):
             current_power += P_BUSY
         elif state == "IDLE":
             current_power += P_IDLE
+        elif state == "OFF":
+            current_power += P_OFF
+        elif state == "SETUP":
+            current_power += P_SETUP
         else:
             raise ValueError("Unknown state")
     return current_power
