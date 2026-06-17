@@ -7,6 +7,9 @@ def choose_server(Num_users, policy):
     else:
         raise ValueError("Unknow policy")
 
+def count_busy_servers(atm_state):
+    busy_servers = sum(1 for state in atm_state if state == "BUSY")
+    return busy_servers
 
 def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, timesteps = 100, policy = "NEVEROFF", seed = 42):
     '''
@@ -52,7 +55,7 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
 
         # Update AQ and AB
         Area_users += delta_time * sum(Num_users)
-        busy_server = sum(1 for state in atm_state if state == "BUSY")
+        busy_server = count_busy_servers(atm_state)
         Area_atm_state += delta_time * busy_server
 
         # Update energy consumption
