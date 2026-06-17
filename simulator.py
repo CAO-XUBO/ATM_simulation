@@ -2,25 +2,16 @@ import numpy as np
 from Config import *
 
 def choose_server(Num_users, policy):
-    '''
-    Choose the server based on the policy
-    '''
     if policy == "NEVEROFF":
         return np.argmin(Num_users)
     else:
         raise ValueError("Unknown policy")
 
 def count_busy_servers(atm_state):
-    '''
-    Count the number of busy servers
-    '''
     busy_servers = sum(1 for state in atm_state if state == "BUSY")
     return busy_servers
 
 def calculate_current_power(atm_state):
-    '''
-    Calculate the current power
-    '''
     current_power = 0
     for state in atm_state:
         if state == "BUSY":
@@ -45,6 +36,8 @@ def multi_ATM_simulator(Num_atm = 5, arrival_rate = 1, service_rate = 1.5, times
     Num_atm: The number of ATM in the system
     arrival_rate: The arrival rate lambda
     service_rate: The service rate mu
+    timesteps: Simulation times
+    setup_time: The setup time
     return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
     '''
 
