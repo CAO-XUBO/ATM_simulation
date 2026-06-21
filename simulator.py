@@ -2,13 +2,13 @@ import numpy as np
 from Config import *
 from policies import get_policy_functions
 
-def count_busy_servers(atm_state):
-    busy_servers = sum(1 for state in atm_state if state == "BUSY")
+def count_busy_servers(server_state):
+    busy_servers = sum(1 for state in server_state if state == "BUSY")
     return busy_servers
 
-def calculate_current_power(atm_state):
+def calculate_current_power(server_state):
     current_power = 0
-    for state in atm_state:
+    for state in server_state:
         if state == "BUSY":
             current_power += P_BUSY
         elif state == "IDLE":
@@ -21,37 +21,37 @@ def calculate_current_power(atm_state):
             raise ValueError("Unknown state")
     return current_power
 
-def start_service(server_id, arrival_time, current_time, service_rate, atm_state, current_customer_arrival, event_calendar):
+def start_service(server_id, arrival_time, current_time, service_rate, server_state, current_customer_arrival, event_calendar):
 
     # Set the server to busy state
-    atm_state[server_id] = "BUSY"
+    server_state[server_id] = "BUSY"
 
     current_customer_arrival[server_id] = arrival_time
     departure_time = current_time + np.random.exponential(1 / service_rate)
     event_calendar.append((departure_time, "departure", server_id))
 
-def start_setup(server_id, current_time, setup_time, atm_state, event_calendar):
+def start_setup(server_id, current_time, setup_time, server_state, event_calendar):
 
     # Set the server to setup state
-    atm_state[server_id] = "SETUP"
+    server_state[server_id] = "SETUP"
 
     setup_complete_time = current_time + setup_time
     event_calendar.append((setup_complete_time, "setup_complete", server_id))
 
-def find_idle_server(atm_state):
-    for i, state in enumerate(atm_state):
+def find_idle_server(server_state):
+    for i, state in enumerate(server_state):
         if state == "IDLE":
             return i
     return None
 
 def dispatch_jobs_to_idle_servers(central_queue, current_time, service_rate,
-                                  atm_state, current_customer_arrival,
+                                  server_state, current_customer_arrival,
                                   event_calendar):
     added_waiting_time = 0
     added_started_service = 0
 
     while len(central_queue) > 0:
-        idle_server = find_idle_server(atm_state)
+        idle_server = find_idle_server(server_state)
 
         if idle_server is None:
             break
@@ -62,19 +62,12 @@ def dispatch_jobs_to_idle_servers(central_queue, current_time, service_rate,
         added_waiting_time += waiting_time
         added_started_service += 1
 
-        start_service(
-            idle_server,
-            arrival_time,
-            current_time,
-            service_rate,
-            atm_state,
-            current_customer_arrival,
-            event_calendar
-        )
+        start_service(idle_server, arrival_time, current_time, service_rate, server_state, current_customer_arrival,
+                      event_calendar)
 
     return added_waiting_time, added_started_service
 
-def multi_ATM_simulator(Num_atm = 5,
+def server_simulator(Num_server = 5,
                         arrival_rate = 1,
                         service_rate = 1.5,
                         timesteps = 100,
@@ -82,7 +75,7 @@ def multi_ATM_simulator(Num_atm = 5,
                         policy = "NEVEROFF",
                         seed = 42):
     '''
-    Num_atm: The number of ATM in the system
+    Num_server: The number of server in the system
     arrival_rate: The arrival rate lambda
     service_rate: The service rate mu
     timesteps: Simulation times
@@ -96,12 +89,12 @@ def multi_ATM_simulator(Num_atm = 5,
 
     # Initialisation
     policy_functions = get_policy_functions(policy)
-    atm_state = [policy_functions["initial_state"]] * Num_atm # B(t): The ATM is in use, or idle
+    server_state = [policy_functions["initial_state"]] * Num_server # B(t): The cpu is in use, or idle
 
     # Central queue
     central_queue = []
 
-    Area_atm_state = 0 # AB
+    Area_server_state = 0 # AB
     Area_users = 0  # AQ
 
     total_energy = 0
@@ -109,7 +102,7 @@ def multi_ATM_simulator(Num_atm = 5,
     Num_started_service = 0
     total_response_time = 0
     Num_completed_users = 0
-    current_customer_arrival = [None] * Num_atm
+    current_customer_arrival = [None] * Num_server
 
     # Initialise the event calendar
     first_arrival_time = np.random.exponential(1/arrival_rate)
@@ -125,14 +118,14 @@ def multi_ATM_simulator(Num_atm = 5,
         delta_time = event_time - current_time
 
         # Update AQ and AB
-        busy_server = count_busy_servers(atm_state)
+        busy_server = count_busy_servers(server_state)
         system_size = busy_server + len(central_queue)
 
         Area_users += delta_time * system_size
-        Area_atm_state += delta_time * busy_server
+        Area_server_state += delta_time * busy_server
 
         # Update energy consumption
-        current_power = calculate_current_power(atm_state)
+        current_power = calculate_current_power(server_state)
 
         total_energy += delta_time * current_power
 
@@ -151,7 +144,7 @@ def multi_ATM_simulator(Num_atm = 5,
                 central_queue,
                 current_time,
                 service_rate,
-                atm_state,
+                server_state,
                 current_customer_arrival,
                 event_calendar)
 
@@ -159,16 +152,10 @@ def multi_ATM_simulator(Num_atm = 5,
             Num_started_service += added_started_service
 
             # Decide whether to start setting up or off a server base on policy
-            if policy_functions["start_setup"](central_queue, atm_state):
-                off_server = policy_functions["choose_off_server"](atm_state)
+            if policy_functions["start_setup"](central_queue, server_state):
+                off_server = policy_functions["choose_off_server"](server_state)
                 if off_server is not None:
-                    start_setup(
-                        off_server,
-                        current_time,
-                        setup_time,
-                        atm_state,
-                        event_calendar
-                    )
+                    start_setup(off_server, current_time, setup_time, server_state, event_calendar)
 
             # Schedule the next arrival time
             next_arrival_time = current_time + np.random.exponential(1/arrival_rate)
@@ -182,14 +169,14 @@ def multi_ATM_simulator(Num_atm = 5,
             current_customer_arrival[server_id] = None
 
             # Server becomes idle after completing a job
-            atm_state[server_id] = "IDLE"
+            server_state[server_id] = "IDLE"
 
             # Dispatch another job to the idle server
             added_waiting_time, added_started_service = dispatch_jobs_to_idle_servers(
                 central_queue,
                 current_time,
                 service_rate,
-                atm_state,
+                server_state,
                 current_customer_arrival,
                 event_calendar
             )
@@ -198,19 +185,19 @@ def multi_ATM_simulator(Num_atm = 5,
             Num_started_service += added_started_service
 
             # If the server is still idle after dispatching, apply policy
-            if atm_state[server_id] == "IDLE":
-                atm_state[server_id] = policy_functions["idle_state_after_departure"]
+            if server_state[server_id] == "IDLE":
+                server_state[server_id] = policy_functions["idle_state_after_departure"]
 
         elif event_type == "setup_complete":
             # Server becomes idle after completing a job
-            atm_state[server_id] = "IDLE"
+            server_state[server_id] = "IDLE"
 
             # Dispatch another job to the idle server
             added_waiting_time, added_started_service = dispatch_jobs_to_idle_servers(
                 central_queue,
                 current_time,
                 service_rate,
-                atm_state,
+                server_state,
                 current_customer_arrival,
                 event_calendar
             )
@@ -219,12 +206,12 @@ def multi_ATM_simulator(Num_atm = 5,
             Num_started_service += added_started_service
 
         # If the server is still idle after dispatching, apply policy
-        if atm_state[server_id] == "IDLE":
-            atm_state[server_id] = policy_functions["idle_state_after_departure"]
+        if server_state[server_id] == "IDLE":
+            server_state[server_id] = policy_functions["idle_state_after_departure"]
 
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
-            Utilization = Area_atm_state/(Num_atm * timesteps) # rho
+            Utilization = Area_server_state / (Num_server * timesteps) # rho
 
             Average_Power = total_energy / timesteps
             Average_Waiting_Time = total_waiting_time / Num_started_service
@@ -234,14 +221,8 @@ def multi_ATM_simulator(Num_atm = 5,
             return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
 
 if __name__ == "__main__":
-    Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP = multi_ATM_simulator(
-        Num_atm=5,
-        arrival_rate=1,
-        service_rate=1.5,
-        timesteps=100,
-        policy="NEVEROFF", # "NEVEROFF", "INSTANTOFF"
-        seed=42
-    )
+    Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP = server_simulator(
+        Num_server=5, arrival_rate=1, service_rate=1.5, timesteps=100, policy="NEVEROFF", seed=42)
 
     print("Simulation Finished")
     print("The Average System Size:", Average_System_Size)

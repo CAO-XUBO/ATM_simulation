@@ -1,23 +1,23 @@
 import numpy as np
 
-def count_state(atm_state, target_state):
-    return sum(1 for state in atm_state if state == target_state)
+def count_state(server_state, target_state):
+    return sum(1 for state in server_state if state == target_state)
 
-def choose_off_server(atm_state):
-    for i, state in enumerate(atm_state):
+def choose_off_server(server_state):
+    for i, state in enumerate(server_state):
         if state == "OFF":
             return i
     return None
 
-def start_setup_neveroff(central_queue, atm_state):
+def start_setup_neveroff(central_queue, server_state):
     return False
 
-def start_setup_instantoff(central_queue, atm_state):
+def start_setup_instantoff(central_queue, server_state):
     queue_length = len(central_queue)
 
-    idle_servers = count_state(atm_state, "IDLE")
-    setup_servers = count_state(atm_state, "SETUP")
-    off_servers = count_state(atm_state, "OFF")
+    idle_servers = count_state(server_state, "IDLE")
+    setup_servers = count_state(server_state, "SETUP")
+    off_servers = count_state(server_state, "OFF")
 
     if queue_length == 0:
         return False
