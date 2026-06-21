@@ -38,7 +38,7 @@ def get_policy_functions(policy):
         return {
             "idle_state_after_departure": "IDLE",
             "initial_state": "IDLE",
-            "start_setup": start_setup_neveroff,
+            "should_start_setup": start_setup_neveroff,
             "choose_off_server": choose_off_server
         }
 
@@ -46,7 +46,7 @@ def get_policy_functions(policy):
         return {
             "idle_state_after_departure": "OFF",
             "initial_state": "OFF",
-            "start_setup": start_setup_instantoff,
+            "should_start_setup": start_setup_instantoff,
             "choose_off_server": choose_off_server
         }
 

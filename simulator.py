@@ -38,6 +38,20 @@ def start_setup(server_id, current_time, setup_time, server_state, event_calenda
     setup_complete_time = current_time + setup_time
     event_calendar.append((setup_complete_time, "setup_complete", server_id))
 
+def apply_setup_policy(central_queue, current_time, setup_time,
+                       server_state, event_calendar, policy_functions):
+    if policy_functions["should_start_setup"](central_queue, server_state):
+        off_server = policy_functions["choose_off_server"](server_state)
+
+        if off_server is not None:
+            start_setup(
+                off_server,
+                current_time,
+                setup_time,
+                server_state,
+                event_calendar
+            )
+
 def find_idle_server(server_state):
     for i, state in enumerate(server_state):
         if state == "IDLE":
@@ -151,14 +165,15 @@ def server_simulator(Num_server = 5,
             total_waiting_time += added_waiting_time
             Num_started_service += added_started_service
 
-            # Decide whether to start setting up or off a server base on policy
-            if policy_functions["start_setup"](central_queue, server_state):
-                off_server = policy_functions["choose_off_server"](server_state)
-                if off_server is not None:
-                    start_setup(off_server, current_time, setup_time, server_state, event_calendar)
+            apply_setup_policy(central_queue,
+                               current_time,
+                               setup_time,
+                               server_state,
+                               event_calendar,
+                               policy_functions)
 
             # Schedule the next arrival time
-            next_arrival_time = current_time + np.random.exponential(1/arrival_rate)
+            next_arrival_time = current_time + np.random.exponential(1 / arrival_rate)
             event_calendar.append((next_arrival_time, "arrival", None))
 
         elif event_type == "departure":
