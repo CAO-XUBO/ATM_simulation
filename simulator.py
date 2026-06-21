@@ -205,9 +205,9 @@ def server_simulator(Num_server = 5,
             total_waiting_time += added_waiting_time
             Num_started_service += added_started_service
 
-        # If the server is still idle after dispatching, apply policy
-        if server_state[server_id] == "IDLE":
-            server_state[server_id] = policy_functions["idle_state_after_departure"]
+            # If the server is still idle after dispatching, apply policy
+            if server_state[server_id] == "IDLE":
+                server_state[server_id] = policy_functions["idle_state_after_departure"]
 
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
@@ -222,7 +222,12 @@ def server_simulator(Num_server = 5,
 
 if __name__ == "__main__":
     Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP = server_simulator(
-        Num_server=5, arrival_rate=1, service_rate=1.5, timesteps=100, policy="NEVEROFF", seed=42)
+        Num_server=5,
+        arrival_rate=1,
+        service_rate=1.5,
+        timesteps=100,
+        policy="NEVEROFF",  # "INSTANTOFF", "NEVEROFF"
+        seed=42)
 
     print("Simulation Finished")
     print("The Average System Size:", Average_System_Size)
