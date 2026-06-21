@@ -1,24 +1,53 @@
 import numpy as np
 
-def choose_server_neveroff(Num_users, atm_state):
-    return np.argmin(Num_users)
+def count_state(atm_state, target_state):
+    return sum(1 for state in atm_state if state == target_state)
 
-def choose_server_instantoff(Num_users, atm_state):
-    return np.argmin(Num_users)
+def choose_off_server(atm_state):
+    for i, state in enumerate(atm_state):
+        if state == "OFF":
+            return i
+    return None
+
+def start_setup_neveroff(central_queue, atm_state):
+    return False
+
+def start_setup_instantoff(central_queue, atm_state):
+    queue_length = len(central_queue)
+
+    idle_servers = count_state(atm_state, "IDLE")
+    setup_servers = count_state(atm_state, "SETUP")
+    off_servers = count_state(atm_state, "OFF")
+
+    if queue_length == 0:
+        return False
+
+    if idle_servers > 0:
+        return False
+
+    if off_servers == 0:
+        return False
+
+    if setup_servers >= queue_length:
+        return False
+
+    return True
 
 def get_policy_functions(policy):
     if policy == "NEVEROFF":
         return {
-            "choose_server": choose_server_neveroff,
             "idle_state_after_departure": "IDLE",
-            "initial_state": "IDLE"
+            "initial_state": "IDLE",
+            "start_setup": start_setup_neveroff,
+            "choose_off_server": choose_off_server
         }
 
     elif policy == "INSTANTOFF":
         return {
-            "choose_server": choose_server_instantoff,
             "idle_state_after_departure": "OFF",
-            "initial_state": "OFF"
+            "initial_state": "OFF",
+            "start_setup": start_setup_instantoff,
+            "choose_off_server": choose_off_server
         }
 
     else:
