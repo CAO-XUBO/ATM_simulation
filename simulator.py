@@ -214,8 +214,15 @@ def server_simulator(Num_server = 5,
             Utilization = Area_server_state / (Num_server * timesteps) # rho
 
             Average_Power = total_energy / timesteps
-            Average_Waiting_Time = total_waiting_time / Num_started_service
-            Average_Response_Time = total_response_time / Num_completed_users
+            if Num_started_service > 0:
+                Average_Waiting_Time = total_waiting_time / Num_started_service
+            else:
+                Average_Waiting_Time = 0
+            if Num_completed_users > 0:
+                Average_Response_Time = total_response_time / Num_completed_users
+            else:
+                Average_Response_Time = 0
+
             ERP = Average_Power * Average_Response_Time
 
             return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
