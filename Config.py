@@ -6,8 +6,18 @@ P_IDLE = 150
 P_OFF = 0
 P_SETUP = 240
 
-# Experimental Settings
+## Experimental Settings
+#Arrival Process
+ARRIVAL_MODE = "fixed"
+'''
+fixed: a fixed arrival rate
+scaling: lambda^n = n - C * n^alpha
+'''
 ARRIVAL_RATE = 1.5 # lambda
+ARRIVAL_SCALE_C = 0.3 # C
+ARRIVAL_ALPHA = 0.5 # alpha
+
+# SERVICE DISTRIBUTION
 SERVICE_RATE = 1.0 # mu
 SIMULATION_TIME = 100000
 NUM_SERVERS = 5
