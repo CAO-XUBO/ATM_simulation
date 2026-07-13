@@ -21,11 +21,16 @@ def calculate_current_power(server_state):
             raise ValueError("Unknown state")
     return current_power
 
-def get_arrival_rate(Num_server, base_server_rate, arrival_mode = "fixed", C = 0.3, alpha = 0.5):
-    if arrival_mode == "fixed":
-        return base_server_rate
+def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C = 0.3, alpha = 0.5):
+    '''
+    arrival_model
+    fixed: a fixed arrival rate
+    scaling: lambda^n = n - C * n^alpha
+    '''
+    if arrival_model == "fixed":
+        return base_arrival_rate
 
-    elif arrival_mode == "scaling":
+    elif arrival_model == "scaling":
         arrival_rate = Num_server - C * (Num_server ** alpha)
 
         if arrival_rate <= 0:
@@ -96,12 +101,15 @@ def dispatch_jobs_to_idle_servers(central_queue, current_time, service_rate,
     return added_waiting_time, added_started_service
 
 def server_simulator(Num_server = 5,
-                        arrival_rate = 1,
-                        service_rate = 1.5,
-                        timesteps = 100,
-                        setup_time = SETUP_TIME,
-                        policy = "NEVEROFF",
-                        seed = 42):
+                     arrival_rate = 1,
+                     service_rate = 1.5,
+                     timesteps = 100,
+                     setup_time = SETUP_TIME,
+                     policy = "NEVEROFF",
+                     arrival_model = ARRIVAL_MODEL,
+                     arrival_scale_C = ARRIVAL_SCALE_C,
+                     arrival_alpha = ARRIVAL_ALPHA,
+                     seed = 42):
     '''
     Num_server: The number of server in the system
     arrival_rate: The arrival rate lambda
@@ -115,7 +123,16 @@ def server_simulator(Num_server = 5,
     if seed is not None:
         np.random.seed(seed)
 
-    # Initialisation
+    ## Initialisation
+
+    #get the arrival rate
+    actual_arrival_rate = get_arrival_rate(
+        Num_server,
+        arrival_rate,
+        arrival_model,
+        arrival_scale_C,
+        arrival_alpha
+    )
     policy_functions = get_policy_functions(policy)
     server_state = [policy_functions["initial_state"]] * Num_server # B(t): The cpu is in use, or idle
 
@@ -133,7 +150,7 @@ def server_simulator(Num_server = 5,
     current_customer_arrival = [None] * Num_server
 
     # Initialise the event calendar
-    first_arrival_time = np.random.exponential(1/arrival_rate)
+    first_arrival_time = np.random.exponential(1/actual_arrival_rate)
     event_calendar = [(first_arrival_time, "arrival", None), (timesteps, "termination", None)]
 
     current_time = 0
@@ -187,7 +204,7 @@ def server_simulator(Num_server = 5,
                                policy_functions)
 
             # Schedule the next arrival time
-            next_arrival_time = current_time + np.random.exponential(1 / arrival_rate)
+            next_arrival_time = current_time + np.random.exponential(1 / actual_arrival_rate)
             event_calendar.append((next_arrival_time, "arrival", None))
 
         elif event_type == "departure":
@@ -263,6 +280,9 @@ if __name__ == "__main__":
         service_rate=1.5,
         timesteps=100,
         policy="NEVEROFF",  # "INSTANTOFF", "NEVEROFF"
+        arrival_model="scaling",
+        arrival_scale_C=0.3,
+        arrival_alpha=0.5,
         seed=42)
 
     print("Simulation Finished")

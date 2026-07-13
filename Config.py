@@ -8,7 +8,7 @@ P_SETUP = 240
 
 ## Experimental Settings
 #Arrival Process
-ARRIVAL_MODE = "fixed"
+ARRIVAL_MODEL = "scaling"
 '''
 fixed: a fixed arrival rate
 scaling: lambda^n = n - C * n^alpha
