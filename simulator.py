@@ -21,6 +21,20 @@ def calculate_current_power(server_state):
             raise ValueError("Unknown state")
     return current_power
 
+def get_arrival_rate(Num_server, base_server_rate, arrival_mode = "fixed", C = 0.3, alpha = 0.5):
+    if arrival_mode == "fixed":
+        return base_server_rate
+
+    elif arrival_mode == "scaling":
+        arrival_rate = Num_server - C * (Num_server ** alpha)
+
+        if arrival_rate <= 0:
+            raise ValueError("Arrival rate must be positive")
+        return arrival_rate
+
+    else:
+        raise ValueError("Unknown arrival mode")
+
 def start_service(server_id, arrival_time, current_time, service_rate, server_state, current_customer_arrival, event_calendar):
 
     # Set the server to busy state
