@@ -24,7 +24,7 @@ def calculate_current_power(server_state):
 def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C = 0.3, alpha = 0.5):
     '''
     arrival_model
-    fixed: a fixed arrival rate
+    fixed: a fixed arrival rate lambda
     scaling: lambda^n = n - C * n^alpha
     '''
     if arrival_model == "fixed":
