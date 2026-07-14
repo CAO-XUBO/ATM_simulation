@@ -69,6 +69,22 @@ def should_start_setup_threshold(central_queue, server_state, turn_on_threshold)
         else:
             return False
 
+def should_turn_off_threshold(server_id, server_state, turn_off_threshold):
+    '''
+    The turn-off rule for Threshold policy
+    turn_off_threshold: T_i
+    '''
+    # Cannot turn off a busy server
+    if server_state[server_id] != "IDLE":
+        return False
+
+    Num_idle_servers = count_state(server_state, "IDLE")
+
+    if Num_idle_servers > turn_off_threshold:
+        return True
+    else:
+        return False
+
 def get_policy_functions(policy):
     if policy == "NEVEROFF":
         return {
