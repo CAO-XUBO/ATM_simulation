@@ -15,7 +15,7 @@ def should_start_setup_neveroff(central_queue, server_state, turn_on_threshold =
     '''
     return False
 
-def should_turn_off_neveroff(central_queue, server_state, turn_off_threshold = None):
+def should_turn_off_neveroff(server_id, server_state, turn_off_threshold = None):
     '''
     The turn-off rule for NEVEROFF policy
     '''
@@ -65,8 +65,8 @@ def should_start_setup_threshold(central_queue, server_state, turn_on_threshold)
         return False
 
     # Case I: when T_o is positive, the policy focus on the number of idle servers
-    if turn_on_threshold > 0:
-        if Num_idle_servers < turn_on_threshold:
+    if turn_on_threshold >= 0:
+        if Num_idle_servers <= turn_on_threshold:
             return True
         else:
             return False
@@ -108,7 +108,6 @@ def get_policy_functions(policy):
 
     elif policy == "INSTANTOFF":
         return {
-            "idle_state_after_departure": "OFF",
             "initial_state": "OFF",
             "should_start_setup": should_start_setup_instantoff,
             "should_turn_off": should_turn_off_instantoff,
