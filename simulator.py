@@ -58,8 +58,9 @@ def start_setup(server_id, current_time, setup_time, server_state, event_calenda
     event_calendar.append((setup_complete_time, "setup_complete", server_id))
 
 def apply_setup_policy(central_queue, current_time, setup_time,
-                       server_state, event_calendar, policy_functions):
-    if policy_functions["should_start_setup"](central_queue, server_state):
+                       server_state, event_calendar, policy_functions,
+                       turn_on_threshold):
+    if policy_functions["should_start_setup"](central_queue, server_state, turn_on_threshold):
         off_server = policy_functions["choose_off_server"](server_state)
 
         if off_server is not None:
@@ -70,6 +71,11 @@ def apply_setup_policy(central_queue, current_time, setup_time,
                 server_state,
                 event_calendar
             )
+
+def apply_turn_off_policy(sever_id, sever_state, policy_functions,
+                          turn_off_threshold):
+    if policy_functions["should_turn_off"](sever_state, sever_id, turn_off_threshold):
+        sever_state[sever_id] = "OFF"
 
 def find_idle_server(server_state):
     for i, state in enumerate(server_state):
@@ -106,6 +112,8 @@ def server_simulator(Num_server = 5,
                      timesteps = 100,
                      setup_time = SETUP_TIME,
                      policy = "NEVEROFF",
+                     turn_on_threshold = 2,
+                     turn_off_threshold = -3,
                      arrival_model = ARRIVAL_MODEL,
                      arrival_scale_C = ARRIVAL_SCALE_C,
                      arrival_alpha = ARRIVAL_ALPHA,
@@ -201,7 +209,8 @@ def server_simulator(Num_server = 5,
                                setup_time,
                                server_state,
                                event_calendar,
-                               policy_functions)
+                               policy_functions,
+                               turn_on_threshold)
 
             # Schedule the next arrival time
             next_arrival_time = current_time + np.random.exponential(1 / actual_arrival_rate)
@@ -232,7 +241,18 @@ def server_simulator(Num_server = 5,
 
             # If the server is still idle after dispatching, apply policy
             if server_state[server_id] == "IDLE":
-                server_state[server_id] = policy_functions["idle_state_after_departure"]
+                apply_turn_off_policy(server_id, server_state, policy_functions, turn_off_threshold)
+
+            # Check the turn-on threshold T_o
+            apply_setup_policy(
+                central_queue,
+                current_time,
+                setup_time,
+                server_state,
+                event_calendar,
+                policy_functions,
+                turn_on_threshold
+            )
 
         elif event_type == "setup_complete":
             # Server becomes idle after completing a job
@@ -253,7 +273,18 @@ def server_simulator(Num_server = 5,
 
             # If the server is still idle after dispatching, apply policy
             if server_state[server_id] == "IDLE":
-                server_state[server_id] = policy_functions["idle_state_after_departure"]
+                apply_turn_off_policy(server_id, server_state, policy_functions, turn_off_threshold)
+
+            # Check the turn-on threshold T_o
+            apply_setup_policy(
+                central_queue,
+                current_time,
+                setup_time,
+                server_state,
+                event_calendar,
+                policy_functions,
+                turn_on_threshold
+            )
 
         elif event_type == "termination":
             Average_System_Size = Area_users/timesteps # L
