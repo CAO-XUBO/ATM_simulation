@@ -115,5 +115,13 @@ def get_policy_functions(policy):
             "choose_off_server": choose_off_server
         }
 
+    elif policy == "THRESHOLD":
+        return {
+            "initial_state": "OFF",
+            "should_start_setup": should_start_setup_threshold,
+            "should_turn_off": should_turn_off_threshold,
+            "choose_off_server": choose_off_server
+        }
+
     else:
         raise ValueError("Unknown policy")
