@@ -72,10 +72,10 @@ def apply_setup_policy(central_queue, current_time, setup_time,
                 event_calendar
             )
 
-def apply_turn_off_policy(server_id, sever_state, policy_functions,
+def apply_turn_off_policy(server_id, server_state, policy_functions,
                           turn_off_threshold):
-    if policy_functions["should_turn_off"](server_id, sever_state, turn_off_threshold):
-        sever_state[server_id] = "OFF"
+    if policy_functions["should_turn_off"](server_id, server_state, turn_off_threshold):
+        server_state[server_id] = "OFF"
 
 def find_idle_server(server_state):
     for i, state in enumerate(server_state):
@@ -142,8 +142,10 @@ def server_simulator(Num_server = 5,
         arrival_alpha
     )
     policy_functions = get_policy_functions(policy)
-    server_state = [policy_functions["initial_state"]] * Num_server # B(t): The cpu is in use, or idle
-
+    server_state = policy_functions["initialize_server_state"](
+        Num_server,
+        turn_off_threshold
+    )
     # Central queue
     central_queue = []
 
@@ -223,7 +225,7 @@ def server_simulator(Num_server = 5,
             Num_completed_users += 1
             current_customer_arrival[server_id] = None
 
-            # Server becomes idle after completing a job
+            # Server becomes idle after setup is completed
             server_state[server_id] = "IDLE"
 
             # Dispatch another job to the idle server
