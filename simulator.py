@@ -72,10 +72,10 @@ def apply_setup_policy(central_queue, current_time, setup_time,
                 event_calendar
             )
 
-def apply_turn_off_policy(sever_id, sever_state, policy_functions,
+def apply_turn_off_policy(server_id, sever_state, policy_functions,
                           turn_off_threshold):
-    if policy_functions["should_turn_off"](sever_state, sever_id, turn_off_threshold):
-        sever_state[sever_id] = "OFF"
+    if policy_functions["should_turn_off"](server_id, sever_state, turn_off_threshold):
+        sever_state[server_id] = "OFF"
 
 def find_idle_server(server_state):
     for i, state in enumerate(server_state):
@@ -112,8 +112,8 @@ def server_simulator(Num_server = 5,
                      timesteps = 100,
                      setup_time = SETUP_TIME,
                      policy = "NEVEROFF",
-                     turn_on_threshold = 2,
-                     turn_off_threshold = -3,
+                     turn_off_threshold = 5,
+                     turn_on_threshold = -3,
                      arrival_model = ARRIVAL_MODEL,
                      arrival_scale_C = ARRIVAL_SCALE_C,
                      arrival_alpha = ARRIVAL_ALPHA,
@@ -310,11 +310,15 @@ if __name__ == "__main__":
         arrival_rate=1,
         service_rate=1.5,
         timesteps=100,
-        policy="NEVEROFF",  # "INSTANTOFF", "NEVEROFF"
+        setup_time=SETUP_TIME,
+        policy="THRESHOLD",  # "INSTANTOFF", "NEVEROFF"
+        turn_off_threshold=5,
+        turn_on_threshold=-3,
         arrival_model="scaling",
         arrival_scale_C=0.3,
         arrival_alpha=0.5,
-        seed=42)
+        seed=42
+    )
 
     print("Simulation Finished")
     print("The Average System Size:", Average_System_Size)
