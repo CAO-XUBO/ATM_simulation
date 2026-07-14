@@ -9,15 +9,21 @@ def choose_off_server(server_state):
             return i
     return None
 
-def should_start_setup_neveroff(central_queue, server_state):
+def should_start_setup_neveroff(central_queue, server_state, turn_on_threshold = None):
     '''
     The turn-on rule for NEVEROFF policy
     '''
     return False
 
-def should_start_setup_instantoff(central_queue, server_state):
+def should_turn_off_neveroff(central_queue, server_state, turn_off_threshold = None):
     '''
-    The turn-on rule for INSTANT policy
+    The turn-off rule for NEVEROFF policy
+    '''
+    return False
+
+def should_start_setup_instantoff(central_queue, server_state, turn_on_threshold = None):
+    '''
+    The turn-on rule for INSTANTOFF policy
     '''
     queue_length = len(central_queue)
 
@@ -38,6 +44,12 @@ def should_start_setup_instantoff(central_queue, server_state):
         return False
 
     return True
+
+def should_turn_off_instantoff(server_id, server_state, turn_off_threshold = None):
+    '''
+    The turn-off rule for INSTANTOFF policy
+    '''
+    return server_state[server_id] == "IDLE"
 
 
 def should_start_setup_threshold(central_queue, server_state, turn_on_threshold):
@@ -88,9 +100,9 @@ def should_turn_off_threshold(server_id, server_state, turn_off_threshold):
 def get_policy_functions(policy):
     if policy == "NEVEROFF":
         return {
-            "idle_state_after_departure": "IDLE",
             "initial_state": "IDLE",
             "should_start_setup": should_start_setup_neveroff,
+            "should_turn_off": should_turn_off_neveroff,
             "choose_off_server": choose_off_server
         }
 
@@ -99,6 +111,7 @@ def get_policy_functions(policy):
             "idle_state_after_departure": "OFF",
             "initial_state": "OFF",
             "should_start_setup": should_start_setup_instantoff,
+            "should_turn_off": should_turn_off_instantoff,
             "choose_off_server": choose_off_server
         }
 
