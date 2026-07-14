@@ -9,10 +9,16 @@ def choose_off_server(server_state):
             return i
     return None
 
-def start_setup_neveroff(central_queue, server_state):
+def should_start_setup_neveroff(central_queue, server_state):
+    '''
+    The turn-on rule for NEVEROFF policy
+    '''
     return False
 
-def start_setup_instantoff(central_queue, server_state):
+def should_start_setup_instantoff(central_queue, server_state):
+    '''
+    The turn-on rule for INSTANT policy
+    '''
     queue_length = len(central_queue)
 
     idle_servers = count_state(server_state, "IDLE")
@@ -38,7 +44,7 @@ def get_policy_functions(policy):
         return {
             "idle_state_after_departure": "IDLE",
             "initial_state": "IDLE",
-            "should_start_setup": start_setup_neveroff,
+            "should_start_setup": should_start_setup_neveroff,
             "choose_off_server": choose_off_server
         }
 
@@ -46,7 +52,7 @@ def get_policy_functions(policy):
         return {
             "idle_state_after_departure": "OFF",
             "initial_state": "OFF",
-            "should_start_setup": start_setup_instantoff,
+            "should_start_setup": should_start_setup_instantoff,
             "choose_off_server": choose_off_server
         }
 
