@@ -23,3 +23,6 @@ SIMULATION_TIME = 100000
 NUM_SERVERS = 5
 SEED = 42
 SETUP_TIME = 200
+
+# Linear cost function indicator
+COST_FUNCTION_BETA = 1
