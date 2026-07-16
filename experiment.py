@@ -6,8 +6,8 @@ from Config import *
 
 results = []
 
-turn_off_threshold = range(0,11)
-turn_on_threshold = range(-10,6)
+turn_off_threshold = range(0,6)
+turn_on_threshold = range(-6,6)
 c_values = [0.1, 0.3, 0.5]
 
 for c in c_values:
