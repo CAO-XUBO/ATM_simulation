@@ -25,12 +25,12 @@ def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C =
     '''
     arrival_model
     fixed: a fixed arrival rate lambda
-    scaling: lambda^n = n - C * n^alpha
+    fixed_scaling: lambda^n = n - C * n^alpha
     '''
     if arrival_model == "fixed":
         return base_arrival_rate
 
-    elif arrival_model == "scaling":
+    elif arrival_model == "fixed_scaling":
         arrival_rate = Num_server - C * (Num_server ** alpha)
 
         if arrival_rate <= 0:
@@ -322,7 +322,7 @@ if __name__ == "__main__":
         policy="THRESHOLD",  # "INSTANTOFF", "NEVEROFF"
         turn_off_threshold=5,
         turn_on_threshold=-3,
-        arrival_model="scaling",
+        arrival_model="fixed_scaling",
         arrival_scale_C=0.3,
         arrival_alpha=0.5,
         seed=42
