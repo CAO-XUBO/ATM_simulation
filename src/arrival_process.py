@@ -75,7 +75,7 @@ def generate_next_arrival_time(current_time,
     Generates the next arrival time
     """
 
-    if arrival_model in ["fixed", "scaling"]:
+    if arrival_model in ["fixed", "fixed_scaling"]:
 
         arrival_rate = get_arrival_rate(
             Num_server=Num_server,
