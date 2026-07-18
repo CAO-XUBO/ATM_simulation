@@ -1,6 +1,6 @@
 import numpy as np
 from Config import *
-from policies import get_policy_functions
+from src.policies import get_policy_functions
 from src.arrival_process import generate_next_arrival_time
 
 def count_busy_servers(server_state):
