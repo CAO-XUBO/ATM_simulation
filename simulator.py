@@ -316,7 +316,7 @@ def server_simulator(Num_server = 5,
             # ERP := E[R]*E[E]
             ERP = Average_Power * Average_Response_Time
             # Linear_cost_function = E[R] + \beta * E[E]
-            Linear_cost_function = Average_Power + COST_FUNCTION_BETA * Average_Response_Time
+            Linear_cost_function = Average_Response_Time + COST_FUNCTION_BETA * Average_Power
 
             return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP, Linear_cost_function
 
