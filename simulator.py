@@ -118,6 +118,7 @@ def server_simulator(Num_server = 5,
                      arrival_model = ARRIVAL_MODEL,
                      arrival_scale_C = ARRIVAL_SCALE_C,
                      arrival_alpha = ARRIVAL_ALPHA,
+                     arrival_amplitude = ARRIVAL_AMPLITUDE,
                      seed = 42):
     '''
     Num_server: The number of server in the system
@@ -154,17 +155,22 @@ def server_simulator(Num_server = 5,
 
     ## Initialise the event calendar
     # Schedule the first arrival event
+    current_time = 0
+
     first_arrival_time = generate_next_arrival_time(
         current_time=0,
         Num_server=Num_server,
         base_arrival_rate=arrival_rate,
         arrival_model=arrival_model,
         C=arrival_scale_C,
-        alpha=arrival_alpha
+        alpha=arrival_alpha,
+        timesteps=timesteps,
+        arrival_amplitude=arrival_amplitude
     )
-    event_calendar = [(first_arrival_time, "arrival", None), (timesteps, "termination", None)]
+    event_calendar = [(timesteps, "termination", None)]
 
-    current_time = 0
+    if first_arrival_time is not None:
+        event_calendar.append((first_arrival_time, "arrival", None))
 
     while True:
         # Find the next event and delete it from the event calendar
@@ -222,9 +228,13 @@ def server_simulator(Num_server = 5,
                 base_arrival_rate=arrival_rate,
                 arrival_model=arrival_model,
                 C=arrival_scale_C,
-                alpha=arrival_alpha
+                alpha=arrival_alpha,
+                timesteps=timesteps,
+                arrival_amplitude=arrival_amplitude
             )
-            event_calendar.append((next_arrival_time, "arrival", None))
+
+            if next_arrival_time is not None:
+                event_calendar.append((next_arrival_time, "arrival", None))
 
         elif event_type == "departure":
 
