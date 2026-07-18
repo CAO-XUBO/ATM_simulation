@@ -1,6 +1,7 @@
 import numpy as np
 from Config import *
 from policies import get_policy_functions
+from src.arrival_process import *
 
 def count_busy_servers(server_state):
     busy_servers = sum(1 for state in server_state if state == "BUSY")
@@ -21,24 +22,24 @@ def calculate_current_power(server_state):
             raise ValueError("Unknown state")
     return current_power
 
-def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C = 0.3, alpha = 0.5):
-    '''
-    arrival_model
-    fixed: a fixed arrival rate lambda
-    fixed_scaling: lambda^n = n - C * n^alpha
-    '''
-    if arrival_model == "fixed":
-        return base_arrival_rate
-
-    elif arrival_model == "fixed_scaling":
-        arrival_rate = Num_server - C * (Num_server ** alpha)
-
-        if arrival_rate <= 0:
-            raise ValueError("Arrival rate must be positive")
-        return arrival_rate
-
-    else:
-        raise ValueError("Unknown arrival mode")
+# def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C = 0.3, alpha = 0.5):
+#     '''
+#     arrival_model
+#     fixed: a fixed arrival rate lambda
+#     fixed_scaling: lambda^n = n - C * n^alpha
+#     '''
+#     if arrival_model == "fixed":
+#         return base_arrival_rate
+#
+#     elif arrival_model == "fixed_scaling":
+#         arrival_rate = Num_server - C * (Num_server ** alpha)
+#
+#         if arrival_rate <= 0:
+#             raise ValueError("Arrival rate must be positive")
+#         return arrival_rate
+#
+#     else:
+#         raise ValueError("Unknown arrival mode")
 
 def start_service(server_id, arrival_time, current_time, service_rate, server_state, current_customer_arrival, event_calendar):
 
@@ -133,14 +134,6 @@ def server_simulator(Num_server = 5,
 
     ## Initialisation
 
-    #get the arrival rate
-    actual_arrival_rate = get_arrival_rate(
-        Num_server,
-        arrival_rate,
-        arrival_model,
-        arrival_scale_C,
-        arrival_alpha
-    )
     policy_functions = get_policy_functions(policy)
     server_state = policy_functions["initialize_server_state"](
         Num_server,
@@ -159,8 +152,16 @@ def server_simulator(Num_server = 5,
     Num_completed_users = 0
     current_customer_arrival = [None] * Num_server
 
-    # Initialise the event calendar
-    first_arrival_time = np.random.exponential(1/actual_arrival_rate)
+    ## Initialise the event calendar
+    # Schedule the first arrival event
+    first_arrival_time = generate_next_arrival_time(
+        current_time=0,
+        Num_server=Num_server,
+        base_arrival_rate=arrival_rate,
+        arrival_model=arrival_model,
+        C=arrival_scale_C,
+        alpha=arrival_alpha
+    )
     event_calendar = [(first_arrival_time, "arrival", None), (timesteps, "termination", None)]
 
     current_time = 0
@@ -215,7 +216,14 @@ def server_simulator(Num_server = 5,
                                turn_on_threshold)
 
             # Schedule the next arrival time
-            next_arrival_time = current_time + np.random.exponential(1 / actual_arrival_rate)
+            next_arrival_time = generate_next_arrival_time(
+                current_time=current_time,
+                Num_server=Num_server,
+                base_arrival_rate=arrival_rate,
+                arrival_model=arrival_model,
+                C=arrival_scale_C,
+                alpha=arrival_alpha
+            )
             event_calendar.append((next_arrival_time, "arrival", None))
 
         elif event_type == "departure":
