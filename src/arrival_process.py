@@ -23,10 +23,10 @@ def get_arrival_rate(Num_server,
         arrival_rate = Num_server - C * (Num_server ** alpha)
 
     elif arrival_model == "time_varying_scaling":
-        if not (0 <= arrival_amplitude <= 1):
+        if not (0 <= arrival_amplitude < 1):
             raise ValueError("Arrival amplitude must be between 0 and 1")
 
-        time_factor = 1 + arrival_amplitude * np.sin(2 * np.pi * current_time)
+        time_factor = 1 + arrival_amplitude * np.sin(2 * np.pi * current_time / timesteps)
 
         arrival_rate = Num_server - C * (Num_server ** alpha) * time_factor
 
@@ -40,7 +40,7 @@ def get_arrival_rate(Num_server,
 
 def get_max_arrival_rate(Num_server,
                          base_arrival_rate,
-                         arrival_model="scaling_fixed",
+                         arrival_model="fixed_scaling",
                          C=0.3,
                          alpha = 0.5,
                          arrival_amplitude=0.5):
@@ -53,7 +53,7 @@ def get_max_arrival_rate(Num_server,
         return max_arrival_rate
 
     elif arrival_model == "time_varying_scaling":
-        if not (0 <= arrival_amplitude <= 1):
+        if not (0 <= arrival_amplitude < 1):
             raise ValueError("Arrival amplitude must be between 0 and 1")
 
         max_arrival_rate = Num_server - C * (Num_server ** alpha) * (1 - arrival_amplitude)
