@@ -9,13 +9,10 @@ P_SETUP = 240
 ## Experimental Settings
 #Arrival Process
 ARRIVAL_MODEL = "scaling"
-'''
-fixed: a fixed arrival rate
-scaling: lambda^n = n - C * n^alpha
-'''
 ARRIVAL_RATE = 1.5 # lambda
 ARRIVAL_SCALE_C = 0.3 # C
 ARRIVAL_ALPHA = 0.5 # alpha
+ARRIVAL_AMPLITUDE = 0.5 #
 
 # SERVICE DISTRIBUTION
 SERVICE_RATE = 1.0 # mu
