@@ -1,7 +1,7 @@
 import numpy as np
 from Config import *
 from policies import get_policy_functions
-from src.arrival_process import *
+from src.arrival_process import generate_next_arrival_time
 
 def count_busy_servers(server_state):
     busy_servers = sum(1 for state in server_state if state == "BUSY")
