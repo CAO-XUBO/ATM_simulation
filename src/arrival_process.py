@@ -18,3 +18,21 @@ def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C =
 
     else:
         raise ValueError("Unknown arrival mode")
+
+def generate_next_arrival_time(current_time, Num_server, base_arrival_rate, arrival_model, C, alpha):
+    '''
+    Generates the next arrival time
+    '''
+
+    arrival_rate = get_arrival_rate(
+        Num_server=Num_server,
+        base_arrival_rate=base_arrival_rate,
+        arrival_model=arrival_model,
+        C=C,
+        alpha=alpha)
+
+    # Calculate the actual arrival time
+    inter_arrival_time = np.random.exponential(1/arrival_rate)
+    actual_arrival_time = current_time + inter_arrival_time
+
+    return actual_arrival_time
