@@ -1,3 +1,10 @@
+'''
+A policy contains three functions:
+    initialize_server_state: defines the initial state of the server
+    should_start_setup: defines whether the policy should start setup(turn on)
+    should_turn_off: defines whether the policy should turn off
+'''
+
 import numpy as np
 
 def count_state(server_state, target_state):

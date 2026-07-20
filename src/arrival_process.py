@@ -1,3 +1,6 @@
+
+'''The core task of this code file is generate the next arrival time under different arrival model'''
+
 import numpy as np
 
 def get_arrival_rate(Num_server,

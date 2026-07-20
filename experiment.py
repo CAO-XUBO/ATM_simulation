@@ -13,7 +13,7 @@ turn_on_threshold = [-3,3]
 # c_values = [0.1, 0.3, 0.5]
 c_values = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
-policy = "THRESHOLD"
+policy = "INSTANTOFF"
 
 if policy in ["NEVEROFF", "INSTANTOFF"]:
     for c in c_values:
@@ -80,7 +80,7 @@ output_filepath = "experiment_results"
 if not os.path.exists(output_filepath):
     os.makedirs(output_filepath)
 
-filename = policy + "experiment_results.csv"
+filename = policy + "_experiment_results.csv"
 output_filename = os.path.join(output_filepath, filename)
 
 results_df.to_csv(output_filename)

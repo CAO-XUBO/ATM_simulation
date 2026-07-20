@@ -126,6 +126,10 @@ def server_simulator(Num_server = 5,
     service_rate: The service rate mu
     timesteps: Simulation times
     setup_time: The setup time
+    policy: The policy function
+    turn_off_threshold: The turn off threshold T_i
+    turn_on_threshold: The turn on threshold T_o
+    arrival_model: The arrival model (fixed, fixed_scaling, time_varying_scaling)
     return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
     '''
 
@@ -134,7 +138,6 @@ def server_simulator(Num_server = 5,
         np.random.seed(seed)
 
     ## Initialisation
-
     policy_functions = get_policy_functions(policy)
     server_state = policy_functions["initialize_server_state"](
         Num_server,
@@ -337,7 +340,7 @@ if __name__ == "__main__":
         service_rate=1.5,
         timesteps=100,
         setup_time=SETUP_TIME,
-        policy="THRESHOLD",  # "INSTANTOFF", "NEVEROFF"
+        policy="THRESHOLD",  # "INSTANTOFF", "NEVEROFF", "THRESHOLD"
         turn_off_threshold=5,
         turn_on_threshold=-3,
         arrival_model="fixed_scaling",
