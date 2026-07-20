@@ -4,7 +4,7 @@
 P_BUSY = 240
 P_IDLE = 150
 P_OFF = 0
-P_SETUP = 240
+P_SETUP = 150
 
 ## Experimental Settings
 #Arrival Process

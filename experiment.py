@@ -13,7 +13,7 @@ turn_on_threshold = [-3,3]
 # c_values = [0.1, 0.3, 0.5]
 c_values = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
-policy = "INSTANTOFF"
+policy = "THRESHOLD"
 
 if policy in ["NEVEROFF", "INSTANTOFF"]:
     for c in c_values:
@@ -24,7 +24,7 @@ if policy in ["NEVEROFF", "INSTANTOFF"]:
             service_rate=SERVICE_RATE,
             timesteps=SIMULATION_TIME,
             setup_time=SETUP_TIME,
-            policy="THRESHOLD",
+            policy=policy,
             arrival_model="time_varying_scaling",
             arrival_scale_C=c,
             arrival_alpha=ARRIVAL_ALPHA,
@@ -83,4 +83,4 @@ if not os.path.exists(output_filepath):
 filename = policy + "_experiment_results.csv"
 output_filename = os.path.join(output_filepath, filename)
 
-results_df.to_csv(output_filename)
+results_df.to_csv(output_filename, index=False)

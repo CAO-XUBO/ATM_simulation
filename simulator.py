@@ -334,13 +334,15 @@ def server_simulator(Num_server = 5,
             return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP, Linear_cost_function
 
 if __name__ == "__main__":
+
+    policy = "NEVEROFF"
     Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP, Linear_cost_function = server_simulator(
         Num_server=5,
         arrival_rate=1,
         service_rate=1.5,
-        timesteps=100,
+        timesteps=10000,
         setup_time=SETUP_TIME,
-        policy="THRESHOLD",  # "INSTANTOFF", "NEVEROFF", "THRESHOLD"
+        policy=policy,  # "INSTANTOFF", "NEVEROFF", "THRESHOLD"
         turn_off_threshold=5,
         turn_on_threshold=-3,
         arrival_model="fixed_scaling",
@@ -350,6 +352,7 @@ if __name__ == "__main__":
     )
 
     print("Simulation Finished")
+    print("Policy:", policy)
     print("The Average System Size:", Average_System_Size)
     print("Utilization:", Utilization)
     print("Average Power:", Average_Power)
