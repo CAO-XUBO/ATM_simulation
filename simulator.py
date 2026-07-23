@@ -7,20 +7,28 @@ def count_busy_servers(server_state):
     busy_servers = sum(1 for state in server_state if state == "BUSY")
     return busy_servers
 
-def calculate_current_power(server_state):
-    current_power = 0
-    for state in server_state:
-        if state == "BUSY":
-            current_power += P_BUSY
-        elif state == "IDLE":
-            current_power += P_IDLE
-        elif state == "OFF":
-            current_power += P_OFF
-        elif state == "SETUP":
-            current_power += P_SETUP
-        else:
-            raise ValueError("Unknown state")
-    return current_power
+def count_server_states(server_state):
+    return {
+        "BUSY": sum(1 for state in server_state if state == "BUSY"),
+        "IDLE": sum(1 for state in server_state if state == "IDLE"),
+        "SETUP": sum(1 for state in server_state if state == "SETUP"),
+        "OFF": sum(1 for state in server_state if state == "OFF"),
+    }
+
+# def calculate_current_power(server_state):
+#     current_power = 0
+#     for state in server_state:
+#         if state == "BUSY":
+#             current_power += P_BUSY
+#         elif state == "IDLE":
+#             current_power += P_IDLE
+#         elif state == "OFF":
+#             current_power += P_OFF
+#         elif state == "SETUP":
+#             current_power += P_SETUP
+#         else:
+#             raise ValueError("Unknown state")
+#     return current_power
 
 # def get_arrival_rate(Num_server, base_arrival_rate, arrival_model = "fixed", C = 0.3, alpha = 0.5):
 #     '''
@@ -150,12 +158,17 @@ def server_simulator(Num_server = 5,
     Area_server_state = 0 # AB
     Area_users = 0  # AQ
 
-    total_energy = 0
     total_waiting_time = 0
     Num_started_service = 0
     total_response_time = 0
     Num_completed_users = 0
     current_customer_arrival = [None] * Num_server
+
+    # Initialise the time on each state
+    busy_server_time = 0.0
+    idle_server_time = 0.0
+    setup_server_time = 0.0
+    off_server_time = 0.0
 
     ## Initialise the event calendar
     # Schedule the first arrival event
@@ -183,17 +196,25 @@ def server_simulator(Num_server = 5,
 
         delta_time = event_time - current_time
 
-        # Update AQ and AB
-        busy_server = count_busy_servers(server_state)
+        state_counts = count_server_states(server_state)
+
+        busy_server = state_counts["BUSY"]
+        idle_server = state_counts["IDLE"]
+        setup_server = state_counts["SETUP"]
+        off_server = state_counts["OFF"]
+
         system_size = busy_server + len(central_queue)
 
+        # Update average number of jobs and utilization area
         Area_users += delta_time * system_size
         Area_server_state += delta_time * busy_server
 
-        # Update energy consumption
-        current_power = calculate_current_power(server_state)
+        # Update server-state time
+        busy_server_time += delta_time * busy_server
+        idle_server_time += delta_time * idle_server
+        setup_server_time += delta_time * setup_server
+        off_server_time += delta_time * off_server
 
-        total_energy += delta_time * current_power
 
         # Update the current time
         current_time = event_time
@@ -314,7 +335,20 @@ def server_simulator(Num_server = 5,
             Average_System_Size = Area_users/timesteps # L
             Utilization = Area_server_state / (Num_server * timesteps) # rho
 
+            # Calculate the expected energy consumption with decomposition
+            busy_energy = P_BUSY * busy_server_time
+            idle_energy = P_IDLE * idle_server_time
+            setup_energy = P_SETUP * setup_server_time
+            off_energy = P_OFF * off_server_time
+
+            total_energy = (
+                    busy_energy
+                    + idle_energy
+                    + setup_energy
+                    + off_energy
+            )
             Average_Power = total_energy / timesteps
+
             if Num_started_service > 0:
                 Average_Waiting_Time = total_waiting_time / Num_started_service
             else:
@@ -353,11 +387,12 @@ def server_simulator(Num_server = 5,
             Objective_Little = RESPONSE_TIME_WEIGHT * Average_Response_Time_Little + Average_Power
 
             return (Average_System_Size, Utilization, Average_Power, Average_Waiting_Time,
-                    Average_Response_Time_Exact, Average_Response_Time_Little, ERP_Exact, ERP_Little, Objective_Exact, Objective_Little)
+                    Average_Response_Time_Exact, Average_Response_Time_Little, ERP_Exact, ERP_Little, Objective_Exact,
+                    Objective_Little)
 
 if __name__ == "__main__":
 
-    policy = "NEVEROFF"
+    policy = "THRESHOLD"
     (Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time_Exact,
      Average_Response_Time_Little, ERP_Exact, ERP_Little, Objective_Exact, Objective_Little)  = server_simulator(
         Num_server=5,
