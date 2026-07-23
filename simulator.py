@@ -1,5 +1,5 @@
 import numpy as np
-from Config import *
+from src.Config import *
 from src.policies import get_policy_functions
 from src.arrival_process import generate_next_arrival_time, get_arrival_rate
 

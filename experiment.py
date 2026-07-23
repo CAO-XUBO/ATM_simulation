@@ -1,8 +1,7 @@
 import pandas as pd
-import numpy as np
 import os
 from simulator import *
-from Config import *
+from src.Config import *
 
 results = []
 
