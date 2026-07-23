@@ -22,4 +22,4 @@ SEED = 42
 SETUP_TIME = 200
 
 # Linear cost function indicator
-COST_FUNCTION_BETA = 1
+RESPONSE_TIME_WEIGHT = 1

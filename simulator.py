@@ -1,7 +1,7 @@
 import numpy as np
 from Config import *
 from src.policies import get_policy_functions
-from src.arrival_process import generate_next_arrival_time
+from src.arrival_process import generate_next_arrival_time, get_arrival_rate
 
 def count_busy_servers(server_state):
     busy_servers = sum(1 for state in server_state if state == "BUSY")
@@ -130,7 +130,8 @@ def server_simulator(Num_server = 5,
     turn_off_threshold: The turn off threshold T_i
     turn_on_threshold: The turn on threshold T_o
     arrival_model: The arrival model (fixed, fixed_scaling, time_varying_scaling)
-    return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP
+    return: Average_System_Size L, Utilization rho, Average_Power, Average_Waiting_Time, Average_Response_Time_Exact,
+     Average_Response_Time_Little, ERP_Exact, ERP_Little
     '''
 
     # Set the random seed
@@ -319,24 +320,46 @@ def server_simulator(Num_server = 5,
             else:
                 Average_Waiting_Time = 0
             if Num_completed_users > 0:
-                Average_Response_Time = total_response_time / Num_completed_users
+                Average_Response_Time_Exact = total_response_time / Num_completed_users
             else:
-                Average_Response_Time = 0
+                Average_Response_Time_Exact = 0
+
+            # Get the actual arrival rate lambda
+            actual_arrival_rate = get_arrival_rate(
+                Num_server=Num_server,
+                base_arrival_rate=arrival_rate,
+                arrival_model=arrival_model,
+                C=arrival_scale_C,
+                alpha=arrival_alpha,
+                current_time=0,
+                timesteps=timesteps,
+                arrival_amplitude=arrival_amplitude
+            )
+
+            if actual_arrival_rate > 0:
+                Average_Response_Time_Little = Average_System_Size / actual_arrival_rate
+            else:
+                Average_Response_Time_Little = 0
 
             # Cost functions
             # E[R]: Expected Response Time
             # E[E]: Expected Energy Consumption
             # ERP := E[R]*E[E]
-            ERP = Average_Power * Average_Response_Time
-            # Linear_cost_function = E[R] + \beta * E[E]
-            Linear_cost_function = Average_Response_Time + COST_FUNCTION_BETA * Average_Power
+            ERP_Exact = Average_Power * Average_Response_Time_Exact
+            ERP_Little = Average_Power * Average_Response_Time_Little
 
-            return Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP, Linear_cost_function
+            # Linear_cost_function = Weight * E[R] + E[E]
+            Objective_Exact = RESPONSE_TIME_WEIGHT * Average_Response_Time_Exact + Average_Power
+            Objective_Little = RESPONSE_TIME_WEIGHT * Average_Response_Time_Little + Average_Power
+
+            return (Average_System_Size, Utilization, Average_Power, Average_Waiting_Time,
+                    Average_Response_Time_Exact, Average_Response_Time_Little, ERP_Exact, ERP_Little, Objective_Exact, Objective_Little)
 
 if __name__ == "__main__":
 
     policy = "NEVEROFF"
-    Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time, ERP, Linear_cost_function = server_simulator(
+    (Average_System_Size, Utilization, Average_Power, Average_Waiting_Time, Average_Response_Time_Exact,
+     Average_Response_Time_Little, ERP_Exact, ERP_Little, Objective_Exact, Objective_Little)  = server_simulator(
         Num_server=5,
         arrival_rate=1,
         service_rate=1.5,
@@ -357,6 +380,9 @@ if __name__ == "__main__":
     print("Utilization:", Utilization)
     print("Average Power:", Average_Power)
     print("Average Waiting Time:", Average_Waiting_Time)
-    print("Average Response Time:", Average_Response_Time)
-    print("ERP:", ERP)
-    print("Linear Cost:", Linear_cost_function)
+    print("Average Response Time (Exact):", Average_Response_Time_Exact)
+    print("Average Response Time (Little's law):", Average_Response_Time_Little)
+    print("ERP (Exact):", ERP_Exact)
+    print("ERP (Little's law):", ERP_Little)
+    print("Objective (Exact):", Objective_Exact)
+    print("Objective (Little's law):", Objective_Little)
