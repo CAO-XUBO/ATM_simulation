@@ -8,17 +8,6 @@ from simulator import server_simulator
 from src.Config import *
 
 ## Experimental Settings
-Num_servers = NUM_SERVERS
-arrival_rate = ARRIVAL_RATE
-service_rate = SERVICE_RATE
-simulation_time = SIMULATION_TIME
-setup_time = SETUP_TIME
-
-POLICY = "THRESHOLD"
-
-ARRIVAL_MODEL = "fixed_scaling"
-ARRIVAL_SCALE_C = 0.3
-ARRIVAL_ALPHA = 0.5
 policy = "THRESHOLD"
 
 # Choose which objective to optimise:
@@ -62,3 +51,76 @@ def threshold_constraints(T_i, T_o):
         return False
 
     return True
+
+def round_thresholds(decision_variable_x):
+    """
+    Nelder-Mead works in continuous space.
+    The actual policy uses integer thresholds.
+
+    decision_variable_x[0] corresponds to T_i.
+    decision_variable_x[1] corresponds to T_o.
+    """
+
+    T_i = int(round(decision_variable_x[0]))
+    T_o = int(round(decision_variable_x[1]))
+
+    return T_i, T_o
+
+def run_simulation(T_i, T_o, seed, phase):
+    (
+        Average_System_Size,
+        Utilization,
+        Average_Power,
+        Average_Waiting_Time,
+        Average_Response_Time_Exact,
+        Average_Response_Time_Little,
+        ERP_Exact,
+        ERP_Little,
+        Objective_Exact,
+        Objective_Little
+    ) = server_simulator(
+        Num_server=NUM_SERVERS,
+        arrival_rate=ARRIVAL_RATE,
+        service_rate=SERVICE_RATE,
+        timesteps=SIMULATION_TIME,
+        setup_time=SETUP_TIME,
+        policy=policy,
+        turn_off_threshold=T_i,
+        turn_on_threshold=T_o,
+        arrival_model=ARRIVAL_MODEL,
+        arrival_scale_C=ARRIVAL_SCALE_C,
+        arrival_alpha=ARRIVAL_ALPHA,
+        arrival_amplitude=ARRIVAL_AMPLITUDE,
+        seed=seed
+    )
+
+    if OBJECTIVE_TYPE == "exact":
+        objective_value = Objective_Exact
+    elif OBJECTIVE_TYPE == "little":
+        objective_value = Objective_Little
+    else:
+        raise ValueError("OBJECTIVE_TYPE must be either 'exact' or 'little'.")
+
+    # # If the simulation returns nan or inf, penalise this parameter pair.
+    # if not np.isfinite(objective_value):
+    #     objective_value = LARGE_PENALTY
+
+    record = {
+        "phase": phase,
+        "T_i": T_i,
+        "T_o": T_o,
+        "seed": seed,
+        "average_system_size": Average_System_Size,
+        "utilization": Utilization,
+        "average_power": Average_Power,
+        "average_waiting_time": Average_Waiting_Time,
+        "average_response_time_exact": Average_Response_Time_Exact,
+        "average_response_time_little": Average_Response_Time_Little,
+        "ERP_exact": ERP_Exact,
+        "ERP_little": ERP_Little,
+        "objective_exact": Objective_Exact,
+        "objective_little": Objective_Little,
+        "selected_objective": objective_value
+    }
+
+    return record
